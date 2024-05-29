@@ -10,13 +10,15 @@ void start_newline(char *input);
 void file_name_save_and_save_text(char *input);
 void save_to_file(const char *filename, const char *text);
 void load_from_file(char *input, size_t bufferSize);
- void insert_text(char *input, const char *text_to_insert, int line, int index);
+void search_substring(char *input, const char *substring);
+void insert_text(char *input, const char *text_to_insert, int line, int index);
 
 void add_text(char *input, size_t bufferSize) {
     printf("Введіть рядок: ");
     fflush(stdout);  // Примусово виводимо буфер printf
     char buffer[BUFFER_SIZE];
     if (fgets(buffer, BUFFER_SIZE, stdin) == NULL) {
+        // Читання рядка з введення
         printf("Помилка читання рядка.\n");
         return;
     }
@@ -57,16 +59,29 @@ void load_from_file(char *input, size_t bufferSize) {
         return;
     }
 
-    input[0] = '\0';
+    input[0] = '\0';   
     char buffer[BUFFER_SIZE];
     while (fgets(buffer, BUFFER_SIZE, file) != NULL) {
-        strncat(input, buffer, bufferSize - strlen(input) - 1);
+        strncat(input, buffer, bufferSize - strlen(input) - 1);   
     }
 
     fclose(file);
     printf("Текст успішно завантажено з файлу.\n");
 }
 
+void search_substring(char *input, const char *substring) {
+    char *position = input;
+    int len = strlen(substring); // довжина введеного тексту
+
+
+    int line = 0;
+    int column = 0;
+
+    while ((position = strstr(position, substring)) != NULL) {
+        printf(" %d %d\n", line, column + (int)(position - input - column));
+        position += len;  // Переміщаємося за знайдений підрядок
+    }
+}
 
 void insert_text(char *input, const char *text_to_insert, int line, int index) {
     int current_line = 0;
@@ -96,18 +111,18 @@ void insert_text(char *input, const char *text_to_insert, int line, int index) {
 
     memmove(position + insert_len, position, input_len - (position - input) + 1);
 
-
+     
      memcpy(position, text_to_insert, insert_len); // вставка
 
 }
 
 int main() {
-    char *input = (char *)malloc(BUFFER_SIZE * sizeof(char));
+    char *input = (char *)malloc(BUFFER_SIZE * sizeof(char));   
     if (input == NULL) {
         printf("Помилка виділення пам'яті.\n");
         return 1;
     }
-    input[0] = '\0';
+    input[0] = '\0';  
 
     int choice;
 
@@ -118,12 +133,12 @@ int main() {
         printf("3. Enter the file name for saving\n");
         printf("4. Enter the file name for loading\n");
         printf("5. Print the current text to console\n");
-        printf("6. Implement substring insertion mechanism\n");
-        printf("7. Implement substring search mechanism\n");
+        printf("6. Implement substring insertion mechanism\n");   
+        printf("7. Implement substring search mechanism\n");       
         printf("Enter your choice: ");
         scanf("%d", &choice);
 
-        getchar();
+        getchar();  // Споживання символу нового рядка, залишеного scanf
 
         switch (choice) {
             case 1: {
@@ -138,25 +153,25 @@ int main() {
                 file_name_save_and_save_text(input);
                 break;
             }
-            // case 4: {
-            //     load_from_file(input, BUFFER_SIZE);
-            //     break;
-            // }
+            case 4: {
+                load_from_file(input, BUFFER_SIZE);
+                break;
+            }
             case 5: {
                 printf("Current text: %s\n", input);
                 break;
             }
             case 6: {
-                char text_to_insert[BUFFER_SIZE];
-                int line, index;
+                char text_to_insert[BUFFER_SIZE];   
+                int line, index;   
 
-
+                 
                 printf("Enter the line and index: ");
-                scanf("%d %d", &line, &index);
+                scanf("%d %d", &line, &index);   
+                 
+                getchar();   
 
-                getchar();
-
-
+                 
                 printf("Enter text to insert: ");
                 fgets(text_to_insert, BUFFER_SIZE, stdin);   
 
@@ -168,6 +183,13 @@ int main() {
                 break;
             }
             case 7: {
+                char substring[BUFFER_SIZE];
+                printf("Enter the substring to search: ");
+                fgets(substring, BUFFER_SIZE, stdin);
+
+                substring[strcspn(substring, "\n")] = '\0';  // Видалення символу нового рядка
+
+                search_substring(input, substring);
                 break;
             }
             default: {
