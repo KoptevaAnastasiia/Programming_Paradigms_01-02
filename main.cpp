@@ -14,9 +14,11 @@ void insert_text(char *input );
 void delete_file();
 
 
+
+
 void add_text(char *input, size_t bufferSize) {
     printf("Enter the text : ");
-    fflush(stdout);
+    fflush(stdout);   // оч буфету обміну
 
     char text[BUFFER_SIZE];
 
@@ -26,33 +28,55 @@ void add_text(char *input, size_t bufferSize) {
     }
     strncat(input, text, bufferSize - strlen(input) - 1);  // Додаємо новий рядок до існуючого тексту
 }
-
-
-
 void start_newline(char *input) {
     strncat(input, "\n", BUFFER_SIZE - strlen(input) - 1);
     printf("New line is started\n");
 }
-
-
-
 void file_name_save_and_save_text(char *input) {
-    char filename[FILENAME_SIZE];
-
+    char filename[FILENAME_SIZE]; // масив символів який буде містити назву файлу
     printf("Введіть назву файлу для збереження: ");
-    scanf("%99s", filename);
 
 
 
-    FILE *file = fopen(filename, "w");
+
+    // scanf("%99s", filename);   // функція fgets() не читає певну частину вхідних даних, оскільки функція scanf() залишає символ нового рядка в буфері
+                                 // Функція scanf() зазвичай вважається небезпечною для обробки рядків; безпечніше використовувати fgets() для отримання рядка введення, а потім використовувати sscanf() для обробки введення.
+
+
+
+
+
+    //                 buf            n                    fp
+    if ( fgets     (filename,   sizeof(filename),    stdin) != NULL) {
+        filename[strlen(filename) - 1] = '\0';
+    }
+
+
+    FILE *file = fopen64(filename, "w+x");  // 64 for big filles  and add +x
+
     if (file == NULL) {
         printf("Помилка відкриття файлу для запису.\n");
         return;
     }
-    fprintf(file, "%s", input);
-    fclose(file);
-    printf("Текст було записано у файл успішно.\n");
+    else {
+
+        fprintf(file, "%s", input);  // for save input in fille
+
+        //Функція fprintf () записує вихідні дані в потік, визначений fp , під керуванням специфікатора формату
+        // %s тому що стрінг
+
+
+        fclose(file);   // звільняє ресурси
+        printf("Текст було записано у файл успішно.\n");
+    }
+
 }
+
+
+
+
+
+
 
 
 void load_from_file(char *input, size_t bufferSize) {
@@ -63,10 +87,11 @@ void load_from_file(char *input, size_t bufferSize) {
         printf("Error reading file name.\n");
         return;
     }
+
     getchar();
 
 
-    FILE *file = fopen(filename, "r");
+    FILE *file = fopen(filename, "r");  // mayabe r++
     if (file == NULL) {
         printf("Error opening file for reading.\n");
         return;
@@ -75,7 +100,7 @@ void load_from_file(char *input, size_t bufferSize) {
     input[0] = '\0';
 
     char buffer[BUFFER_SIZE];
-    while (fgets(buffer, BUFFER_SIZE, file) != NULL) {
+    while (fgets(buffer, BUFFER_SIZE, file) != NULL) { ///
         strncat(input, buffer, bufferSize - strlen(input) - 1);
     }
 
@@ -85,34 +110,77 @@ void load_from_file(char *input, size_t bufferSize) {
 
 
 
+
+
+
+
 void search_substring(char *input) {
     char substring[BUFFER_SIZE];
     printf("Enter the substring to search: ");
     fgets(substring, BUFFER_SIZE, stdin);
 
-    substring[strcspn(substring, "\n")] = '\0';  // Видалення символу нового рядка
+   // substring[strcspn(substring, "\n")] = '\0';  // Видалення символу нового рядка
+// що це таке
 
 
-
-    char *position = input;
-    int len = strlen(substring);
-
+    int i = 0;
+    for(i ; substring[i] != '/0' ; i++) {
+        if (substring[i] == '\n') {
+            substring[i] = '\0';
+            break;
+        }
+    }
 
     int line = 0;
     int column = 0;
+    int num_matches = 0 ;
 
-    while ((position = strstr(position, substring)) != NULL) {
-        printf(" %d %d\n", line, column + (int)(position - input - column));
-        position += len;  // Переміщаємося за знайдений підрядок
+
+
+    int o = 0 ;
+    int p = 0;
+
+
+    while (p != strlen(input)) {
+        if (input[p] == '\n') {
+            line++;
+            column = 0;
+            p++;
+            continue;
+        }
+
+        if (substring[o] != input[p] ){
+            p++;
+            column++;
+            num_matches = 0;
+            o = 0;
+        }
+        else{
+            p++;
+            o++;
+
+            num_matches++;
+        }
+
+        if (num_matches == strlen(substring)) {
+            printf( "%d , %d", line, column);
+            num_matches = 0;
+            o = 0 ;
+        }
     }
-}
+
+
+    }
+
+
+
 
 
 
 void insert_text(char *input) {
-    char text_to_insert[BUFFER_SIZE];
-    int line, index;
 
+    char substring[BUFFER_SIZE];
+    int line, index;
 
     printf("Enter the line and index: ");
     scanf("%d %d", &line, &index);
@@ -121,11 +189,7 @@ void insert_text(char *input) {
 
 
     printf("Enter text to insert: ");
-    fgets(text_to_insert, BUFFER_SIZE, stdin);
-
-
-    text_to_insert[strcspn(text_to_insert, "\n")] = '\0';   // повертає індекс першого входження
-
+    fgets(substring, BUFFER_SIZE, stdin);
 
 
 
@@ -133,9 +197,8 @@ void insert_text(char *input) {
     int current_index = 0;
 
     int input_len = strlen(input);
-    int insert_len = strlen(text_to_insert);
+    int insert_len = strlen(substring);
     char *position = input;
-
 
 
      while (current_line < line && *position != '\0') {
@@ -151,16 +214,11 @@ void insert_text(char *input) {
             current_index++;
         }
     }
+    memmove(input  , substring,  strlen(substring) +1 + strlen(input));
 
 
-
-    memmove(position + insert_len, position, input_len - (position - input) + 1);
-
-     
-     memcpy(position, text_to_insert, insert_len); // вставка
 
 }
-
 
 
 void delete_file() {
@@ -203,7 +261,7 @@ int main() {
     do {
         printf("\n==============================\n");
         printf(" Choose the command:\n");
-        printf("         \n");
+        printf(" \n");
         printf("1. Enter text to append\n");
         printf("2. Start new line\n");
         printf("3. Enter the file name for saving\n");
