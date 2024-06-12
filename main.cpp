@@ -8,7 +8,7 @@
 void add_text(char *input, size_t bufferSize);
 void start_newline(char *input);
 void file_name_save_and_save_text(char *input);
-void load_from_file(char *input, size_t bufferSize);
+//void load_from_file(char *input, size_t bufferSize);
 void search_substring(char *input);
 void insert_text(char *input );
 void delete_file();
@@ -33,7 +33,7 @@ void start_newline(char *input) {
     printf("New line is started\n");
 }
 void file_name_save_and_save_text(char *input) {
-    char filename[FILENAME_SIZE]; // масив символів який буде містити назву файлу
+    char filename[FILENAME_SIZE];
     printf("Введіть назву файлу для збереження: ");
 
 
@@ -52,7 +52,7 @@ void file_name_save_and_save_text(char *input) {
     }
 
 
-    FILE *file = fopen64(filename, "w+x");  // 64 for big filles  and add +x
+    FILE* file = fopen64(filename, "w+x");  // 64 for big filles  and add +x
 
     if (file == NULL) {
         printf("Помилка відкриття файлу для запису.\n");
@@ -78,35 +78,35 @@ void file_name_save_and_save_text(char *input) {
 
 
 
-
-void load_from_file(char *input, size_t bufferSize) {
-    char filename[FILENAME_SIZE];
-
-    printf("Enter the file name for loading: ");
-    if (scanf("%99s", filename) != 1) {
-        printf("Error reading file name.\n");
-        return;
-    }
-
-    getchar();
-
-
-    FILE *file = fopen(filename, "r");  // mayabe r++
-    if (file == NULL) {
-        printf("Error opening file for reading.\n");
-        return;
-    }
-
-    input[0] = '\0';
-
-    char buffer[BUFFER_SIZE];
-    while (fgets(buffer, BUFFER_SIZE, file) != NULL) { ///
-        strncat(input, buffer, bufferSize - strlen(input) - 1);
-    }
-
-    fclose(file);
-    printf("Text has been loaded successfully.\n");
-}
+//
+// void load_from_file(char *input, size_t bufferSize) {
+//     char filename[FILENAME_SIZE];
+//
+//     printf("Enter the file name for loading: ");
+//     if (scanf("%99s", filename) != 1) {
+//         printf("Error reading file name.\n");
+//         return;
+//     }
+//
+//     getchar();
+//
+//
+//     FILE *file = fopen(filename, "r");  // mayabe r++
+//     if (file == NULL) {
+//         printf("Error opening file for reading.\n");
+//         return;
+//     }
+//
+//     input[0] = '\0';
+//
+//     char buffer[BUFFER_SIZE];
+//     while (fgets(buffer, BUFFER_SIZE, file) != NULL) { ///
+//         strncat(input, buffer, bufferSize - strlen(input) - 1);
+//     }
+//
+//     fclose(file);
+//     printf("Text has been loaded successfully.\n");
+// }
 
 
 
@@ -120,16 +120,9 @@ void search_substring(char *input) {
     fgets(substring, BUFFER_SIZE, stdin);
 
    // substring[strcspn(substring, "\n")] = '\0';  // Видалення символу нового рядка
-// що це таке
 
 
-    int i = 0;
-    for(i ; substring[i] != '/0' ; i++) {
-        if (substring[i] == '\n') {
-            substring[i] = '\0';
-            break;
-        }
-    }
+
 
     int line = 0;
     int column = 0;
@@ -141,63 +134,76 @@ void search_substring(char *input) {
     int p = 0;
 
 
-    while (p != strlen(input)) {
+    // int i = 0;
+    // for(i ; substring[i] != '\0' ; i++) {
+    //     if (substring[i] == '\n') {
+    //         substring[i] = '\0';
+    //         break;
+    //     }
+    // }
+
+    int l = 0 ;
+
+    while (l- 1 != strlen(input) ) {
         if (input[p] == '\n') {
             line++;
             column = 0;
-            p++;
-            continue;
+        }else {
+            column++;
         }
 
-        if (substring[o] != input[p] ){
+        if (substring[o] != input[p]) {
             p++;
             column++;
             num_matches = 0;
             o = 0;
         }
-        else{
+        else {
             p++;
             o++;
-
             num_matches++;
         }
 
         if (num_matches == strlen(substring)) {
-            printf( "%d , %d", line, column);
+            printf(" ( %d,%d )", line, column );
             num_matches = 0;
-            o = 0 ;
+            o = 0;
         }
+        l++;
     }
 
-
-    }
-
+}
 
 
 
 
-
-void insert_text(char *input) {
+ void insert_text(char *input) {
 
     char substring[BUFFER_SIZE];
     int line, index;
-
     printf("Enter the line and index: ");
-    scanf("%d %d", &line, &index);
 
-    getchar();                 // видалення символу нового рядка для коректного зчитування
+
+    scanf("%d %d", &line, &index);
+    getchar();
+
+// після scanf, коли користувач натискає клавішу "Enter", символ нового рядка (\n) залишається у буфері вводу.
+//  getchar видаляє символ нововго рядка з буфету
 
 
     printf("Enter text to insert: ");
     fgets(substring, BUFFER_SIZE, stdin);
 
 
+    if (substring[strlen(substring) - 1] == '\n') {
+        substring[strlen(substring)- 1] = '\0';
+
+    }
 
     int current_line = 0;
     int current_index = 0;
 
-    int input_len = strlen(input);
-    int insert_len = strlen(substring);
+
     char *position = input;
 
 
@@ -212,10 +218,30 @@ void insert_text(char *input) {
         while (current_index < index && *position != '\n' && *position != '\0') {
             position++;
             current_index++;
+
+             char result[BUFFER_SIZE];
+             char input_00[BUFFER_SIZE];
+             char input_01[BUFFER_SIZE];
+
+            snprintf(input_00, position - input + 1 , "%s", input);
+            input_00[position - input] = '\0';
+
+
+            snprintf(input_01, sizeof(input_01), "%s", position);
+
+
+
+            snprintf(result, sizeof(result), "%s%s%s", input_00, substring , input_01);
+
+            printf("Result :  %s", result);
+
+
+            snprintf(input, BUFFER_SIZE, "%s", result);
+
+
+
         }
     }
-    memmove(input  , substring,  strlen(substring) +1 + strlen(input));
-
 
 
 }
@@ -223,6 +249,7 @@ void insert_text(char *input) {
 
 void delete_file() {
     char filename[FILENAME_SIZE];
+
     printf("Enter the file name to delete: ");
     if (scanf("%99s", filename) != 1) {
         printf("Error reading file name.\n");
@@ -302,11 +329,14 @@ int main() {
                 file_name_save_and_save_text(input);
                 break;
             }
-            case 4: {
 
-                load_from_file(input, BUFFER_SIZE);
-                break;
-            }
+            // case 4: {
+            //
+            //     load_from_file(input, BUFFER_SIZE);
+            //     break;
+            // }
+
+
             case 5: {
 
                 printf("Current text: %s\n", input);
