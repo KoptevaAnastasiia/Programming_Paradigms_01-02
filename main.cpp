@@ -5,7 +5,7 @@
 #define BUFFER_SIZE 256
 #define FILENAME_SIZE 100
 
-char *result_copy = NULL;  // Global variable for storing copied text
+char *result_copy = NULL;
 
 class Program {
 public:
@@ -60,6 +60,7 @@ void Program::search_substring() {
     char substring[BUFFER_SIZE];
     printf("Enter the substring to search: ");
     fgets(substring, BUFFER_SIZE, stdin);
+
 
 
     int line = 0;
@@ -224,8 +225,9 @@ void Program::delete_command(int line, int index, int len) {
         strncpy(input, result, BUFFER_SIZE);
 
     }
+}
 
-    void Program::copy(int line, int index, int len) {
+void Program::copy( int line, int index, int len) {
         int current_line = 0, current_index = 0;
         char *position = input;
 
@@ -259,7 +261,7 @@ void Program::delete_command(int line, int index, int len) {
         } else {
             printf("Line %d not found.\n", line);
         }
-    }
+}
 
     void Program::cut(int line, int index, int len) {
         copy(line, index, len);
@@ -353,4 +355,3 @@ void Program::delete_command(int line, int index, int len) {
 
 
     }
-}
