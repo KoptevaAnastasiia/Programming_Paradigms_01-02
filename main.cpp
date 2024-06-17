@@ -5,123 +5,61 @@
 #define BUFFER_SIZE 256
 #define FILENAME_SIZE 100
 
-void add_text(char *input, size_t bufferSize);
-void start_newline(char *input);
-void file_name_save_and_save_text(char *input);
-//void load_from_file(char *input, size_t bufferSize);
-void search_substring(char *input);
-void insert_text(char *input );
-void delete_file();
+char *result_copy = NULL;  // Global variable for storing copied text
 
+class Program {
+public:
+    char *input;
 
+    Program() {
+        input = (char *)malloc(BUFFER_SIZE * sizeof(char));
+        if (input == NULL) {
+            printf("Помилка виділення пам'яті.\n");
+            exit(1);
+        }
+        input[0] = '\0';
+    }
 
+    ~Program() {
+        free(input);
+        if (result_copy != NULL) {
+            free(result_copy);
+        }
+    }
 
-void add_text(char *input, size_t bufferSize) {
-    printf("Enter the text : ");
-    fflush(stdout);   // оч буфету обміну
+    void add_text();
+    void start_newline();
+    void search_substring();
+    void insert_text();
+    void save_to_file(char *input);
+    void free_input();
+    void delete_command(int line, int index, int len);
+    void copy(int line, int index, int len);
+    void cut(int line, int index, int len);
+};
+
+void Program::add_text() {
+    printf("Enter the text: ");
+    fflush(stdout);
 
     char text[BUFFER_SIZE];
 
     if (fgets(text, BUFFER_SIZE, stdin) == NULL) {
-         printf("Помилка читання рядка.\n");
+        printf("Помилка читання рядка.\n");
         return;
     }
-    strncat(input, text, bufferSize - strlen(input) - 1);  // Додаємо новий рядок до існуючого тексту
+    strncat(input, text, BUFFER_SIZE - strlen(input) - 1);
 }
-void start_newline(char *input) {
+
+void Program::start_newline() {
     strncat(input, "\n", BUFFER_SIZE - strlen(input) - 1);
     printf("New line is started\n");
 }
-void file_name_save_and_save_text(char *input) {
-    char filename[FILENAME_SIZE];
-    printf("Введіть назву файлу для збереження: ");
 
-
-
-
-    // scanf("%99s", filename);   // функція fgets() не читає певну частину вхідних даних, оскільки функція scanf() залишає символ нового рядка в буфері
-                                 // Функція scanf() зазвичай вважається небезпечною для обробки рядків; безпечніше використовувати fgets() для отримання рядка введення, а потім використовувати sscanf() для обробки введення.
-
-
-
-
-
-    //                 buf            n                    fp
-    if ( fgets     (filename,   sizeof(filename),    stdin) != NULL) {
-        filename[strlen(filename) - 1] = '\0';
-    }
-
-
-    FILE* file = fopen64(filename, "w+x");  // 64 for big filles  and add +x
-
-    if (file == NULL) {
-        printf("Помилка відкриття файлу для запису.\n");
-        return;
-    }
-    else {
-
-        fprintf(file, "%s", input);  // for save input in fille
-
-        //Функція fprintf () записує вихідні дані в потік, визначений fp , під керуванням специфікатора формату
-        // %s тому що стрінг
-
-
-        fclose(file);   // звільняє ресурси
-        printf("Текст було записано у файл успішно.\n");
-    }
-
-}
-
-
-
-
-
-
-
-//
-// void load_from_file(char *input, size_t bufferSize) {
-//     char filename[FILENAME_SIZE];
-//
-//     printf("Enter the file name for loading: ");
-//     if (scanf("%99s", filename) != 1) {
-//         printf("Error reading file name.\n");
-//         return;
-//     }
-//
-//     getchar();
-//
-//
-//     FILE *file = fopen(filename, "r");  // mayabe r++
-//     if (file == NULL) {
-//         printf("Error opening file for reading.\n");
-//         return;
-//     }
-//
-//     input[0] = '\0';
-//
-//     char buffer[BUFFER_SIZE];
-//     while (fgets(buffer, BUFFER_SIZE, file) != NULL) { ///
-//         strncat(input, buffer, bufferSize - strlen(input) - 1);
-//     }
-//
-//     fclose(file);
-//     printf("Text has been loaded successfully.\n");
-// }
-
-
-
-
-
-
-
-void search_substring(char *input) {
+void Program::search_substring() {
     char substring[BUFFER_SIZE];
     printf("Enter the substring to search: ");
     fgets(substring, BUFFER_SIZE, stdin);
-
-   // substring[strcspn(substring, "\n")] = '\0';  // Видалення символу нового рядка
-
-
 
 
     int line = 0;
@@ -132,15 +70,6 @@ void search_substring(char *input) {
 
     int o = 0 ;
     int p = 0;
-
-
-    // int i = 0;
-    // for(i ; substring[i] != '\0' ; i++) {
-    //     if (substring[i] == '\n') {
-    //         substring[i] = '\0';
-    //         break;
-    //     }
-    // }
 
     int l = 0 ;
 
@@ -174,10 +103,7 @@ void search_substring(char *input) {
 
 }
 
-
-
-
- void insert_text(char *input) {
+void Program::insert_text() {
 
     char substring[BUFFER_SIZE];
     int line, index;
@@ -187,9 +113,8 @@ void search_substring(char *input) {
     scanf("%d %d", &line, &index);
     getchar();
 
-// після scanf, коли користувач натискає клавішу "Enter", символ нового рядка (\n) залишається у буфері вводу.
-//  getchar видаляє символ нововго рядка з буфету
-
+    // після scanf, коли користувач натискає клавішу "Enter", символ нового рядка (\n) залишається у буфері вводу.
+    //  getchar видаляє символ нововго рядка з буфету
 
     printf("Enter text to insert: ");
     fgets(substring, BUFFER_SIZE, stdin);
@@ -207,21 +132,21 @@ void search_substring(char *input) {
     char *position = input;
 
 
-     while (current_line < line && *position != '\0') {
+    while (current_line < line && *position != '\0') {
         if (*position == '\n') {
             current_line++;
         }
         position++;
     }
 
-     if (current_line == line) {
+    if (current_line == line) {
         while (current_index < index && *position != '\n' && *position != '\0') {
             position++;
             current_index++;
 
-             char result[BUFFER_SIZE];
-             char input_00[BUFFER_SIZE];
-             char input_01[BUFFER_SIZE];
+            char result[BUFFER_SIZE];
+            char input_00[BUFFER_SIZE];
+            char input_01[BUFFER_SIZE];
 
             snprintf(input_00, position - input + 1 , "%s", input);
             input_00[position - input] = '\0';
@@ -246,125 +171,186 @@ void search_substring(char *input) {
 
 }
 
-
-void delete_file() {
+void Program::save_to_file(char *input) {
     char filename[FILENAME_SIZE];
+    printf("Введіть назву файлу для збереження: ");
+    if ( fgets     (filename,   sizeof(filename),    stdin) != NULL) {
+        filename[strlen(filename) - 1] = '\0';
+    }
 
-    printf("Enter the file name to delete: ");
-    if (scanf("%99s", filename) != 1) {
-        printf("Error reading file name.\n");
+    FILE* file = fopen64(filename, "w+x");
+
+    if (file == NULL) {
+        printf("Помилка відкриття файлу для запису.\n");
         return;
     }
-    getchar();
+    else {
+        fprintf(file, "%s", input);  // for save input in fille
+        //Функція fprintf () записує вихідні дані в потік, визначений fp , під керуванням специфікатора формату
 
-    if (remove(filename) == 0) {
-        printf("File deleted successfully.\n");
-    } else {
-        printf("Error deleting file.\n");
+        fclose(file);
+        printf("Текст було записано у файл успішно.\n");
     }
+
 }
 
 
+void Program::free_input() {
+    free(input);
+}
 
+void Program::delete_command(int line, int index, int len) {
+    int current_line = 0, current_index = 0;
+    char *position = input;
 
-
-
-
-
-
-int main() {
-    char *input = (char *)
-    malloc(BUFFER_SIZE * sizeof(char));
-
-    if (input == NULL) {
-        printf("Помилка виділення пам'яті.\n");
-        return 1;
+    while (current_line < line && *position != '\0') {
+        if (*position == '\n') {
+            current_line++;
+        }
+        position++;
     }
 
-    input[0] = '\0';
-
-    int choice;
-
-    do {
-        printf("\n==============================\n");
-        printf(" Choose the command:\n");
-        printf(" \n");
-        printf("1. Enter text to append\n");
-        printf("2. Start new line\n");
-        printf("3. Enter the file name for saving\n");
-        printf("4. Enter the file name for loading\n");
-        printf("5. Print the current text to console\n");
-        printf("6. Insert substring \n");
-        printf("7. Position search  \n");
-        printf("8. Delete file\n");
-        printf("==============================\n");
-        printf("Enter your choice: ");
-        char choice_str[3];
-
-
-        fgets(choice_str, sizeof(choice_str), stdin);
-
-
-        if (  choice_str[1] != '\n') {
-            printf("Invalid choice(.\n");
-            break;
-
+    if (current_line == line) {
+        while (current_index < index && *position != '\n' && *position != '\0') {
+            position++;
+            current_index++;
         }
 
-        choice = choice_str[0] - '0';  // нуль віднімаємо щоб прирівняти до числа
+        char result[BUFFER_SIZE];
+        strncpy(result, input, position - input);
+        result[position - input] = '\0';
 
-        switch (choice) {
-            case 1: {
+        strncat(result, position + len, BUFFER_SIZE);
+        strncpy(input, result, BUFFER_SIZE);
 
-                add_text(input, BUFFER_SIZE);
-                break;
+    }
+
+    void Program::copy(int line, int index, int len) {
+        int current_line = 0, current_index = 0;
+        char *position = input;
+
+        while (current_line < line && *position != '\0') {
+            if (*position == '\n') {
+                current_line++;
             }
-            case 2: {
-
-                start_newline(input);
-                break;
-            }
-            case 3: {
-
-                file_name_save_and_save_text(input);
-                break;
-            }
-
-            // case 4: {
-            //
-            //     load_from_file(input, BUFFER_SIZE);
-            //     break;
-            // }
-
-
-            case 5: {
-
-                printf("Current text: %s\n", input);
-                break;
-            }
-
-            case 6: {
-
-                insert_text(input );
-                break;
-            }
-            case 7: {
-
-                search_substring(input);
-                break;
-            }
-            case 8 : {
-
-                delete_file();
-                break ;
-            }
-            default: {
-
-                break;
-            }
+            position++;
         }
-    } while (choice != 0);
 
-    free(input);
-    return 0;
+        if (current_line == line) {
+            while (current_index < index && *position != '\n' && *position != '\0') {
+                position++;
+                current_index++;
+            }
+
+            if (result_copy != NULL) {
+                free(result_copy);
+            }
+
+            result_copy = (char *)malloc((len + 1) * sizeof(char));
+            if (result_copy == NULL) {
+                printf("Memory allocation error.\n");
+                return;
+            }
+
+            strncpy(result_copy, position, len); // copy by len
+            result_copy[len] = '\0';
+
+            printf("Copied text: %s\n", result_copy);
+        } else {
+            printf("Line %d not found.\n", line);
+        }
+    }
+
+    void Program::cut(int line, int index, int len) {
+        copy(line, index, len);
+        if (result_copy != NULL) {
+            delete_command(line, index, len);
+        }
+        printf("Copied text: %s\n", result_copy);
+
+    }
+
+    int main() {
+        Program program;
+        int choice;
+
+        do {
+            printf("\n==============================\n");
+            printf(" Choose the command:\n");
+            printf(" \n");
+            printf("1. Enter text to append\n");
+            printf("2. Start new line\n");
+            printf("3. Enter the file name for saving\n");
+            printf("4. Enter the file name for loading\n");
+            printf("5. Print the current text to console\n");
+            printf("6. Insert substring \n");
+            printf("7. Position search  \n");
+            printf("8. Delete\n");
+            printf("11. Cut\n");
+            printf("13. Copy\n");
+            printf("0. Stop\n");
+            printf("==============================\n");
+            printf("Enter your choice: ");
+            char choice_str[3];
+            fgets(choice_str, sizeof(choice_str), stdin);
+
+            choice = atoi(choice_str); // Перетворення строкового вводу в число
+
+            switch (choice) {
+                case 1:
+                    program.add_text();
+                break;
+                case 2:
+                    program.start_newline();
+                break;
+                case 3:
+                    program.save_to_file(program.input);
+                break;
+                case 4:
+
+                    break;
+                case 5:
+                    printf("Поточний текст: %s\n", program.input);
+                break;
+                case 6:
+                    program.insert_text();
+                break;
+                case 7:
+                    program.search_substring();
+                break;
+                case 8: {
+                    int line, index, len;
+                    printf("Enter the line, index, and length: ");
+                    scanf("%d %d %d", &line, &index, &len);
+                    getchar();
+                    program.delete_command(line, index, len);
+                    break;
+                }
+                case 11: {
+                    int line, index, len;
+                    printf("Enter the line, index, and length: ");
+                    scanf("%d %d %d", &line, &index, &len);
+                    getchar();
+                    program.cut(line, index, len);
+                    break;
+                }
+                case 13: {
+                    int line, index, len;
+                    printf("Enter the line, index, and length: ");
+                    scanf("%d %d %d", &line, &index, &len);
+                    getchar();
+                    program.copy(line, index, len);
+                    break;
+                }
+                case 0:
+                    program.free_input();
+                break;
+                default:
+                    printf("Неправильний вибір.\n");
+                break;
+            }
+        } while (choice != 0);
+
+
+    }
 }
