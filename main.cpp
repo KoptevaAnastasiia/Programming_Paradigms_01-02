@@ -2,6 +2,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <stack>
+#include <string>
+
 #define BUFFER_SIZE 256
 #define FILENAME_SIZE 100
 
@@ -10,6 +13,8 @@ char *result_copy = NULL;
 class Program {
 public:
     char *input;
+    std::stack<std::string> undo_stack;
+    std::stack<std::string> redo_stack;
 
     Program() {
         input = (char *)malloc(BUFFER_SIZE * sizeof(char));
@@ -22,8 +27,10 @@ public:
 
     ~Program() {
         free(input);
+        input = NULL;
         if (result_copy != NULL) {
             free(result_copy);
+            result_copy = NULL;
         }
     }
 
@@ -36,6 +43,9 @@ public:
     void delete_command(int line, int index, int len);
     void copy(int line, int index, int len);
     void cut(int line, int index, int len);
+
+    void undo_command();
+    void redo_command();
 };
 
 void Program::add_text() {
@@ -228,130 +238,165 @@ void Program::delete_command(int line, int index, int len) {
 }
 
 void Program::copy( int line, int index, int len) {
-        int current_line = 0, current_index = 0;
-        char *position = input;
+    int current_line = 0, current_index = 0;
+    char *position = input;
 
-        while (current_line < line && *position != '\0') {
-            if (*position == '\n') {
-                current_line++;
-            }
+    while (current_line < line && *position != '\0') {
+        if (*position == '\n') {
+            current_line++;
+        }
+        position++;
+    }
+
+    if (current_line == line) {
+        while (current_index < index && *position != '\n' && *position != '\0') {
             position++;
+            current_index++;
         }
 
-        if (current_line == line) {
-            while (current_index < index && *position != '\n' && *position != '\0') {
-                position++;
-                current_index++;
-            }
-
-            if (result_copy != NULL) {
-                free(result_copy);
-            }
-
-            result_copy = (char *)malloc((len + 1) * sizeof(char));
-            if (result_copy == NULL) {
-                printf("Memory allocation error.\n");
-                return;
-            }
-
-            strncpy(result_copy, position, len); // copy by len
-            result_copy[len] = '\0';
-
-            printf("Copied text: %s\n", result_copy);
-        } else {
-            printf("Line %d not found.\n", line);
+        if (result_copy != NULL) {
+            free(result_copy);
         }
+
+        result_copy = (char *)malloc((len + 1) * sizeof(char));
+        if (result_copy == NULL) {
+            printf("Memory allocation error.\n");
+            return;
+        }
+
+        strncpy(result_copy, position, len); // copy by len
+        result_copy[len] = '\0';
+
+        printf("Copied text: %s\n", result_copy);
+    } else {
+        printf("Line %d not found.\n", line);
+    }
 }
 
-    void Program::cut(int line, int index, int len) {
-        copy(line, index, len);
-        if (result_copy != NULL) {
-            delete_command(line, index, len);
-        }
-        printf("Copied text: %s\n", result_copy);
+void Program::cut(int line, int index, int len) {
+    copy(line, index, len);
+    if (result_copy != NULL) {
+        delete_command(line, index, len);
+    }
+    printf("Copied text: %s\n", result_copy);
+
+}
+void Program::undo_command() {
+    if (!undo_stack.empty()) {
+        redo_stack.push(std::string(input));
+        std::string last_state = undo_stack.top();
+        undo_stack.pop();
+        strncpy(input, last_state.c_str(), BUFFER_SIZE);
 
     }
+}
 
-    int main() {
-        Program program;
-        int choice;
+    // void Program::redo_command() {
+    //     if (!redo_stack.empty()) {
+    //         undo_stack.push(std::string(input));
+    //         std::string last_state = redo_stack.top();
+    //         redo_stack.pop();
+    //         strncpy(input, last_state.c_str(), BUFFER_SIZE);
+    //         printf("Redo виконано.\n");
+    //
+    //     }
+    // }
 
-        do {
-            printf("\n==============================\n");
-            printf(" Choose the command:\n");
-            printf(" \n");
-            printf("1. Enter text to append\n");
-            printf("2. Start new line\n");
-            printf("3. Enter the file name for saving\n");
-            printf("4. Enter the file name for loading\n");
-            printf("5. Print the current text to console\n");
-            printf("6. Insert substring \n");
-            printf("7. Position search  \n");
-            printf("8. Delete\n");
-            printf("11. Cut\n");
-            printf("13. Copy\n");
-            printf("0. Stop\n");
-            printf("==============================\n");
-            printf("Enter your choice: ");
-            char choice_str[3];
-            fgets(choice_str, sizeof(choice_str), stdin);
+int main() {
+    Program program;
+    int choice;
 
-            choice = atoi(choice_str); // Перетворення строкового вводу в число
+    do {
+        printf("\n==============================\n");
+        printf(" Choose the command:\n");
+        printf(" \n");
+        printf("1. Enter text to append\n");
+        printf("2. Start new line\n");
+        printf("3. Enter the file name for saving\n");
+        printf("4. Enter the file name for loading\n");
+        printf("5. Print the current text to console\n");
+        printf("6. Insert substring \n");
+        printf("7. Position search  \n");
+        printf("8. Delete\n");
+        printf("9. Undo\n");
+        printf("10. Redo\n");
+        printf("11. Cut\n");
+        printf("13. Copy\n");
+        printf("0. Stop\n");
+        printf("==============================\n");
+        printf("Enter your choice: ");
+        char choice_str[3];
+        fgets(choice_str, sizeof(choice_str), stdin);
 
-            switch (choice) {
-                case 1:
-                    program.add_text();
-                break;
-                case 2:
-                    program.start_newline();
-                break;
-                case 3:
-                    program.save_to_file(program.input);
-                break;
-                case 4:
+        choice = atoi(choice_str);
 
-                    break;
-                case 5:
-                    printf("Поточний текст: %s\n", program.input);
+        switch (choice) {
+            case 1:
+                program.add_text();
+                program.undo_stack.push(std::string(program.input));
                 break;
-                case 6:
-                    program.insert_text();
+            case 2:
+                program.start_newline();
+                program.undo_stack.push(std::string(program.input));
                 break;
-                case 7:
-                    program.search_substring();
+            case 3:
+                program.save_to_file(program.input);
                 break;
-                case 8: {
-                    int line, index, len;
-                    printf("Enter the line, index, and length: ");
-                    scanf("%d %d %d", &line, &index, &len);
-                    getchar();
-                    program.delete_command(line, index, len);
-                    break;
-                }
-                case 11: {
-                    int line, index, len;
-                    printf("Enter the line, index, and length: ");
-                    scanf("%d %d %d", &line, &index, &len);
-                    getchar();
-                    program.cut(line, index, len);
-                    break;
-                }
-                case 13: {
-                    int line, index, len;
-                    printf("Enter the line, index, and length: ");
-                    scanf("%d %d %d", &line, &index, &len);
-                    getchar();
-                    program.copy(line, index, len);
-                    break;
-                }
-                case 0:
-                    program.free_input();
+            case 4:
+                // Реалізуйте завантаження файлу
                 break;
-                default:
-                    printf("Неправильний вибір.\n");
+            case 5:
+                printf("Поточний текст: %s\n", program.input);
+                break;
+            case 6:
+                program.insert_text();
+                program.undo_stack.push(std::string(program.input));
+                break;
+            case 7:
+                program.search_substring();
+                break;
+            case 8: {
+                int line, index, len;
+                printf("Enter the line, index, and length: ");
+                scanf("%d %d %d", &line, &index, &len);
+                getchar(); // Очищення буфера
+                program.delete_command(line, index, len);
+                program.undo_stack.push(std::string(program.input));
                 break;
             }
-        } while (choice != 0);
+            case 9:
+                program.undo_command();
+                break;
+            case 10:
+                program.redo_command();
+                break;
+            case 11: {
+                int line, index, len;
+                printf("Enter the line, index, and length: ");
+                scanf("%d %d %d", &line, &index, &len);
+                getchar(); // Очищення буфера
+                program.cut(line, index, len);
+                program.undo_stack.push(std::string(program.input));
+                break;
+            }
+            case 13: {
+                int line, index, len;
+                printf("Enter the line, index, and length: ");
+                scanf("%d %d %d", &line, &index, &len);
+                getchar(); // Очищення буфера
+                program.copy(line, index, len);
+                break;
+            }
+            case 99:
+                program.free_input();
+                break;
+            default:
+                if (choice != 0) {
+                    printf("Неправильний вибір.\n");
+                }
+                break;
+        }
+    } while (choice != 0);
 
-
-    }
+    return 0;
+}
