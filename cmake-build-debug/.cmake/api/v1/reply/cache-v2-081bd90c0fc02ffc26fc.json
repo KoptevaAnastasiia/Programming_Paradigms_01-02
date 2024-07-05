@@ -55,7 +55,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : "/home/anastasiia/CLionProjects/Programming_Paradigms_01/cmake-build-debug"
+			"value" : "/home/anastasiia/CLionProjects/PP01-02/cmake-build-debug"
 		},
 		{
 			"name" : "CMAKE_CACHE_MAJOR_VERSION",
@@ -627,7 +627,7 @@
 				}
 			],
 			"type" : "STATIC",
-			"value" : "/home/anastasiia/CLionProjects/Programming_Paradigms_01/cmake-build-debug/CMakeFiles/pkgRedirects"
+			"value" : "/home/anastasiia/CLionProjects/PP01-02/cmake-build-debug/CMakeFiles/pkgRedirects"
 		},
 		{
 			"name" : "CMAKE_GENERATOR",
@@ -687,7 +687,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : "/home/anastasiia/CLionProjects/Programming_Paradigms_01"
+			"value" : "/home/anastasiia/CLionProjects/PP01-02"
 		},
 		{
 			"name" : "CMAKE_INSTALL_PREFIX",
@@ -1271,7 +1271,7 @@
 				}
 			],
 			"type" : "STATIC",
-			"value" : "/home/anastasiia/CLionProjects/Programming_Paradigms_01/cmake-build-debug"
+			"value" : "/home/anastasiia/CLionProjects/PP01-02/cmake-build-debug"
 		},
 		{
 			"name" : "ProgrammingParadigms01_IS_TOP_LEVEL",
@@ -1295,7 +1295,7 @@
 				}
 			],
 			"type" : "STATIC",
-			"value" : "/home/anastasiia/CLionProjects/Programming_Paradigms_01"
+			"value" : "/home/anastasiia/CLionProjects/PP01-02"
 		},
 		{
 			"name" : "_CMAKE_LINKER_PUSHPOP_STATE_SUPPORTED",

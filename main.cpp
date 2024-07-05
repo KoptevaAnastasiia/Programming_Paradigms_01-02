@@ -291,16 +291,16 @@ void Program::undo_command() {
     }
 }
 
-    // void Program::redo_command() {
-    //     if (!redo_stack.empty()) {
-    //         undo_stack.push(std::string(input));
-    //         std::string last_state = redo_stack.top();
-    //         redo_stack.pop();
-    //         strncpy(input, last_state.c_str(), BUFFER_SIZE);
-    //         printf("Redo виконано.\n");
-    //
-    //     }
-    // }
+    void Program::redo_command() {
+        if (!redo_stack.empty()) {
+            undo_stack.push(std::string(input));
+            std::string last_state = redo_stack.top();
+            redo_stack.pop();
+            strncpy(input, last_state.c_str(), BUFFER_SIZE);
+            printf("Redo виконано.\n");
+
+        }
+    }
 
 int main() {
     Program program;
